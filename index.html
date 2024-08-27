@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thailand Weather Forecast</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f7fa;
+            color: #004d40;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #00796b;
+        }
+        .weather-container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .city-time {
+            margin: 15px 0;
+            font-size: 1.5em;
+        }
+        .city-time strong {
+            color: #004d40;
+        }
+        .weather-report {
+            margin-top: 30px;
+            font-size: 1.8em;
+            line-height: 1.5em;
+            text-align: left;
+        }
+        .weather-report p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Thailand Weather Forecast</h1>
+    <div class="weather-container">
+        <div id="timezones">
+            <div class="city-time">
+                <strong>Bangkok Time (GMT+7):</strong> <span id="bangkokTime"></span>
+            </div>
+            <div class="city-time">
+                <strong>Tokyo Time (GMT+9):</strong> <span id="tokyoTime"></span>
+            </div>
+            <div class="city-time">
+                <strong>Chicago Time (GMT-5):</strong> <span id="chicagoTime"></span>
+            </div>
+        </div>
+
+        <div id="weather" class="weather-report">
+            Loading weather forecast for Bangkok...
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const bangkokTime = new Date().toLocaleTimeString('en-TH', { timeZone: 'Asia/Bangkok' });
+            const tokyoTime = new Date().toLocaleTimeString('en-JP', { timeZone: 'Asia/Tokyo' });
+            const chicagoTime = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Chicago' });
+
+            document.getElementById('bangkokTime').innerText = bangkokTime;
+            document.getElementById('tokyoTime').innerText = tokyoTime;
+            document.getElementById('chicagoTime').innerText = chicagoTime;
+        }
+
+        async function fetchWeather() {
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours&timezone=Asia/Bangkok');
+                const data = await response.json();
+
+                const maxTemp = data.daily.temperature_2m_max[0];
+                const minTemp = data.daily.temperature_2m_min[0];
+                const precipitationSum = data.daily.precipitation_sum[0];
+                const precipitationHours = data.daily.precipitation_hours[0];
+
+                const chanceOfRain = (precipitationHours / 24) * 100; // Simple approximation for rain chance
+
+                const weatherReport = `
+                    <p><strong>Max Temperature:</strong> ${maxTemp}°C</p>
+                    <p><strong>Min Temperature:</strong> ${minTemp}°C</p>
+                    <p><strong>Precipitation:</strong> ${precipitationSum} mm</p>
+                    <p><strong>Chance of Rain:</strong> ${chanceOfRain.toFixed(2)}%</p>
+                `;
+                document.getElementById('weather').innerHTML = weatherReport;
+            } catch (error) {
+                document.getElementById('weather').innerHTML = 'Failed to load weather data.';
+            }
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000); // Update the time every second
+        fetchWeather(); // Fetch the weather data
+    </script>
+</body>
+</html>
